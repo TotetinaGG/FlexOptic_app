@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FlexOptic | Rehabilitación de Rodilla</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <main class="app">
+
+    <section class="hero">
+      <h1>FlexOptic</h1>
+      <p>Monitoreo de movilidad de rodilla conectado a ESP32.</p>
+
+      <button id="connectBtn">
+        Conectar ESP32 por Bluetooth
+      </button>
+
+      <p id="status" class="status">
+        Estado: desconectado
+      </p>
+    </section>
+
+    <section class="grid">
+
+      <article class="card timer-card">
+        <h2>Tiempo sin movimiento</h2>
+        <div id="timer" class="timer">00:00:00</div>
+        <p id="movementStatus">
+          Esperando datos del sensor...
+        </p>
+      </article>
+
+      <article class="card">
+        <div id="ldrValue" class="sensor">--</div>
+        <p>
+          Último movimiento detectado:
+          <span id="lastMove">--</span>
+        </p>
+      </article>
+
+    </section>
+
+    <section id="alertBox" class="alert hidden">
+      ⚠️ Han pasado 45 minutos sin movimiento.
+      Realiza ejercicios suaves de rodilla.
+    </section>
+
+    <section class="card chatbot">
+
+      <h2>Chatbot de ejercicios para rodilla</h2>
+
+      <div id="chatWindow" class="chat-window">
+        <div class="bot msg">
+          Hola, soy el asistente FlexOptic.
+          Cuéntame si tienes dolor, rigidez,
+          inflamación o necesitas ejercicios para la rodilla.
+        </div>
+      </div>
+
+      <form id="chatForm" class="chat-form">
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="Ej: me duele la rodilla"
+          autocomplete="off"
+        />
+
+        <button type="submit">
+          Enviar
+        </button>
+      </form>
+
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
