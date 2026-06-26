@@ -1,17 +1,25 @@
 // FlexOptic App - Web Bluetooth + cronómetro + chatbot
 
 const ALERT_TIME_MS = 45 * 60 * 1000; // 45 minutos
-const MOVEMENT_THRESHOLD = 50; // Diferencia mínima para considerar movimiento
+
+// Mismo umbral que estás usando en el firmware.
+// Si el valor es menor a 900, hay luz detectada y se considera movimiento.
+const LIGHT_THRESHOLD = 900;
+
+// Para que las frases no cambien demasiado rápido.
+const MESSAGE_UPDATE_INTERVAL = 3000; // 3 segundos
 
 const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
 const CHARACTERISTIC_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
-let lastLdrValue = null;
 let lastMovementTime = null;
 let timerInterval = null;
 let alertPlayed = false;
 let isConnected = false;
 let connectedDevice = null;
+
+let lastMessageUpdate = 0;
+let currentMovementCategory = '';
 
 const connectBtn = document.getElementById('connectBtn');
 const statusEl = document.getElementById('status');
@@ -51,9 +59,10 @@ function beep() {
 
 function resetMonitoring() {
   isConnected = false;
-  lastLdrValue = null;
   lastMovementTime = null;
   alertPlayed = false;
+  lastMessageUpdate = 0;
+  currentMovementCategory = '';
 
   timerEl.textContent = '00:00:00';
   lastMoveEl.textContent = '--';
@@ -70,6 +79,8 @@ function startMonitoring() {
   isConnected = true;
   lastMovementTime = Date.now();
   alertPlayed = false;
+  lastMessageUpdate = 0;
+  currentMovementCategory = '';
 
   timerEl.textContent = '00:00:00';
   lastMoveEl.textContent = '--';
@@ -100,47 +111,76 @@ function startMonitoring() {
   }, 1000);
 }
 
-function getMovementMessage(diff) {
-  if (diff <= 50) {
-    return 'Tu rodilla lleva un rato quieta. Recuerda moverte suavemente pronto.';
+function getMovementCategory(value) {
+  if (value >= LIGHT_THRESHOLD) {
+    return 'sinMovimiento';
   }
 
-  if (diff <= 150) {
-    return 'Buen inicio, detectamos un movimiento suave.';
+  if (value >= 700) {
+    return 'movimientoLeve';
   }
 
-  if (diff <= 400) {
+  if (value >= 500) {
+    return 'movimientoModerado';
+  }
+
+  if (value >= 300) {
+    return 'movimientoAlto';
+  }
+
+  return 'movimientoIntenso';
+}
+
+function getMovementMessage(category) {
+  if (category === 'sinMovimiento') {
+    return 'Tu rodilla está quieta. Recuerda moverte suavemente pronto.';
+  }
+
+  if (category === 'movimientoLeve') {
+    return 'Detectamos un movimiento suave de rodilla.';
+  }
+
+  if (category === 'movimientoModerado') {
     return '¡Bien! Detectamos actividad de rodilla.';
   }
 
-  if (diff <= 800) {
-    return 'Vaya, te estás moviendo bastante. Mantén movimientos suaves y controlados.';
+  if (category === 'movimientoAlto') {
+    return 'Vaya, te estás moviendo bastante. Mantén movimientos controlados.';
   }
 
-  return 'Movimiento intenso detectado. Si sientes dolor, baja la intensidad.';
+  if (category === 'movimientoIntenso') {
+    return 'Movimiento intenso detectado. Si sientes dolor, baja la intensidad.';
+  }
+
+  return 'Esperando datos del sensor.';
+}
+
+function updateMovementMessage(category) {
+  const now = Date.now();
+
+  const categoryChanged = category !== currentMovementCategory;
+  const enoughTimePassed = now - lastMessageUpdate >= MESSAGE_UPDATE_INTERVAL;
+
+  if (categoryChanged && enoughTimePassed) {
+    movementStatusEl.textContent = getMovementMessage(category);
+    currentMovementCategory = category;
+    lastMessageUpdate = now;
+  }
 }
 
 function processLdrValue(value) {
   if (!isConnected) return;
 
+  // El valor se sigue guardando internamente, pero no se muestra en pantalla.
   ldrValueEl.textContent = value;
 
-  if (lastLdrValue === null) {
-    lastLdrValue = value;
-    lastMovementTime = Date.now();
+  const category = getMovementCategory(value);
 
-    const now = new Date().toLocaleTimeString();
-    lastMoveEl.textContent = now;
+  updateMovementMessage(category);
 
-    movementStatusEl.textContent = 'Datos recibidos. Monitoreo iniciado.';
-    return;
-  }
-
-  const diff = Math.abs(value - lastLdrValue);
-
-  movementStatusEl.textContent = getMovementMessage(diff);
-
-  if (diff > MOVEMENT_THRESHOLD) {
+  // En tu sistema, si el valor es menor a 900, hay luz detectada.
+  // Eso significa que hay movimiento y se reinicia el cronómetro.
+  if (value < LIGHT_THRESHOLD) {
     lastMovementTime = Date.now();
     alertPlayed = false;
     alertBox.classList.add('hidden');
@@ -148,8 +188,6 @@ function processLdrValue(value) {
     const now = new Date().toLocaleTimeString();
     lastMoveEl.textContent = now;
   }
-
-  lastLdrValue = value;
 }
 
 connectBtn.addEventListener('click', async () => {
