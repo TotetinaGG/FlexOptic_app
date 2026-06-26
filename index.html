@@ -8,11 +8,13 @@
 </head>
 
 <body>
-
   <main class="app">
 
     <section class="hero">
-      <h1>FlexOptic</h1>
+      <div class="wave wave-left"></div>
+      <div class="wave wave-right"></div>
+
+      <h1>FLEXOPTIC</h1>
       <p>Monitoreo de movilidad de rodilla conectado a ESP32.</p>
 
       <button id="connectBtn">
@@ -24,40 +26,42 @@
       </p>
     </section>
 
-    <section class="grid">
+    <section class="dashboard">
 
-      <article class="card timer-card">
-        <h2>Tiempo sin movimiento</h2>
-        <div id="timer" class="timer">00:00:00</div>
-        <p id="movementStatus">
-          Esperando datos del sensor...
+      <article class="panel timer-panel">
+        <h2>Tiempo sin movimiento:</h2>
+
+        <div id="timer" class="timer">
+          00:00:00
+        </div>
+
+        <p class="last-activity">
+          <strong>Última actividad registrada:</strong>
+          <span id="lastMove">--</span>
         </p>
       </article>
 
-      <article class="card">
-        <div id="ldrValue" class="sensor">--</div>
-        <p>
-          Último movimiento detectado:
-          <span id="lastMove">--</span>
+      <article class="panel message-panel">
+        <p id="movementStatus" class="movement-message">
+          Conecta tu ESP32 para iniciar el monitoreo.
         </p>
+
+        <div id="ldrValue" style="display:none;">--</div>
       </article>
 
     </section>
 
     <section id="alertBox" class="alert hidden">
-      ⚠️ Han pasado 45 minutos sin movimiento.
-      Realiza ejercicios suaves de rodilla.
+      ⚠️ Han pasado 45 minutos sin movimiento. Realiza ejercicios suaves de rodilla. ⚠️
     </section>
 
-    <section class="card chatbot">
+    <section class="chatbot-panel">
 
       <h2>Chatbot de ejercicios para rodilla</h2>
 
       <div id="chatWindow" class="chat-window">
         <div class="bot msg">
-          Hola, soy el asistente FlexOptic.
-          Cuéntame si tienes dolor, rigidez,
-          inflamación o necesitas ejercicios para la rodilla.
+          Hola, soy el asistente FlexOptic. Cuéntame si tienes dolor, rigidez, inflamación o necesitas ejercicios para la rodilla.
         </div>
       </div>
 
@@ -79,6 +83,5 @@
   </main>
 
   <script src="script.js"></script>
-
 </body>
 </html>
